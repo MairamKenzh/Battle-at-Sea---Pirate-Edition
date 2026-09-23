@@ -147,7 +147,7 @@ function placeFleet(grid, shipsArray) {
   FLEET.forEach(s => placeShip(grid, shipsArray, s.name, s.size));
 }
 
-
+// ================= PLAYER ATTACK =================
 function handlePlayerAttack(r, c) {
   if (state.gameOver || !state.playerTurn) return;
   const cell = state.enemyGrid[r][c];
@@ -186,7 +186,7 @@ function handlePlayerAttack(r, c) {
   }
 }
 
-
+// ================= COMPUTER ATTACK =================
 function computerTurn() {
   if (state.gameOver) return;
 
@@ -419,48 +419,84 @@ function startMusic() {
   if (ctx.state === "suspended") ctx.resume();
 
   const masterGain = ctx.createGain();
-  masterGain.gain.value = 0.06;
+  masterGain.gain.value = 0.16;
   masterGain.connect(ctx.destination);
 
-  // low ocean drone with slow tremolo
-  const drone = ctx.createOscillator();
-  drone.type = "sine";
-  drone.frequency.value = 82;
+  // two slightly detuned low drones -> eerie beating/dissonance
+  const droneA = ctx.createOscillator();
+  droneA.type = "sine";
+  droneA.frequency.value = 55;
+  const droneB = ctx.createOscillator();
+  droneB.type = "sine";
+  droneB.frequency.value = 58.5; // detuned for an unsettling beat
   const droneGain = ctx.createGain();
-  droneGain.gain.value = 0.5;
+  droneGain.gain.value = 0.55;
   const lfo = ctx.createOscillator();
   lfo.type = "sine";
-  lfo.frequency.value = 0.12;
+  lfo.frequency.value = 0.1;
   const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 0.25;
+  lfoGain.gain.value = 0.3;
   lfo.connect(lfoGain).connect(droneGain.gain);
-  drone.connect(droneGain).connect(masterGain);
-  lfo.start(); drone.start();
+  droneA.connect(droneGain);
+  droneB.connect(droneGain);
+  droneGain.connect(masterGain);
+  lfo.start(); droneA.start(); droneB.start();
 
-  musicNodes = { masterGain, drone, lfo };
+  // filtered noise -> howling wind / creaking hull
+  const bufferSize = ctx.sampleRate * 2;
+  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const noiseData = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) noiseData[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer;
+  noise.loop = true;
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = "bandpass";
+  noiseFilter.frequency.value = 400;
+  noiseFilter.Q.value = 0.6;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0.18;
+  const windLfo = ctx.createOscillator();
+  windLfo.type = "sine";
+  windLfo.frequency.value = 0.07;
+  const windLfoGain = ctx.createGain();
+  windLfoGain.gain.value = 200;
+  windLfo.connect(windLfoGain).connect(noiseFilter.frequency);
+  noise.connect(noiseFilter).connect(noiseGain).connect(masterGain);
+  noise.start(); windLfo.start();
 
-  // periodic distant bell for pirate atmosphere
-  function playBell() {
+  musicNodes = { masterGain, droneA, droneB, lfo, noise, windLfo };
+
+  // periodic ominous low groan / distant bell, minor and unsettling
+  function playGroan() {
     if (!musicNodes) return;
     const t = ctx.currentTime;
-    const bell = ctx.createOscillator();
-    const bellGain = ctx.createGain();
-    bell.type = "triangle";
-    bell.frequency.value = 440;
-    bellGain.gain.setValueAtTime(0.0001, t);
-    bellGain.gain.linearRampToValueAtTime(0.12, t + 0.05);
-    bellGain.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
-    bell.connect(bellGain).connect(masterGain);
-    bell.start(t); bell.stop(t + 2.3);
-    musicTimer = window.setTimeout(playBell, 4500 + Math.random() * 3000);
+    const groan = ctx.createOscillator();
+    const groanGain = ctx.createGain();
+    groan.type = "triangle";
+    const startFreq = 180 + Math.random() * 40;
+    groan.frequency.setValueAtTime(startFreq, t);
+    groan.frequency.exponentialRampToValueAtTime(startFreq * 0.55, t + 2.8);
+    groanGain.gain.setValueAtTime(0.0001, t);
+    groanGain.gain.linearRampToValueAtTime(0.18, t + 0.4);
+    groanGain.gain.exponentialRampToValueAtTime(0.0001, t + 3);
+    groan.connect(groanGain).connect(masterGain);
+    groan.start(t); groan.stop(t + 3.1);
+    musicTimer = window.setTimeout(playGroan, 3500 + Math.random() * 3500);
   }
-  musicTimer = window.setTimeout(playBell, 2000);
+  musicTimer = window.setTimeout(playGroan, 1500);
 }
 
 function stopMusic() {
   if (musicTimer) { clearTimeout(musicTimer); musicTimer = null; }
   if (musicNodes) {
-    try { musicNodes.drone.stop(); musicNodes.lfo.stop(); } catch (e) {}
+    try {
+      musicNodes.droneA.stop();
+      musicNodes.droneB.stop();
+      musicNodes.lfo.stop();
+      musicNodes.noise.stop();
+      musicNodes.windLfo.stop();
+    } catch (e) {}
     musicNodes = null;
   }
 }

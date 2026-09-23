@@ -267,14 +267,15 @@ html, body {
   border-color: #1c0f07;
 }
 .cell.ship::after {
-  content: "☸";
+  content: "🚢";
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 225, 170, 0.5);
-  font-size: 0.8rem;
+  font-size: 1rem;
+  filter: grayscale(30%) drop-shadow(0 1px 1px rgba(0,0,0,0.6));
+  opacity: 0.9;
 }
 
 /* miss */
@@ -291,6 +292,21 @@ html, body {
 @keyframes rippleOut {
   0%   { transform: scale(0.3); opacity: 0.9; }
   100% { transform: scale(2.8); opacity: 0; }
+}
+.cell.miss::after {
+  content: "✕";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(207, 232, 234, 0.85);
+  font-size: 1rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.cell.miss {
+  background: radial-gradient(circle at 30% 30%, #1c454f 0%, #0e3038 60%, var(--ocean-deep) 100%);
 }
 
 /* hit */
