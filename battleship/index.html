@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battle at Sea — Pirate Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=IM+Fell+English:ital@0;1&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="vignette" aria-hidden="true"></div>
+<div class="bg-decor" aria-hidden="true">
+  <span class="drift-cloud cloud1">☁</span>
+  <span class="drift-cloud cloud2">☁</span>
+</div>
+
+<div class="frame">
+
+  <!-- HEADER -->
+  <header class="header">
+    <button class="corner-btn home-btn" id="home-btn" title="Reset to start" aria-label="Return to start">
+      <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2 2 10h3v10h5v-6h4v6h5V10h3z"/></svg>
+    </button>
+
+    <div class="title-block">
+      <div class="flag" aria-hidden="true">🏴‍☠️</div>
+      <h1 class="title">Battle at Sea</h1>
+      <p class="subtitle">Chart the waters. Hunt the fleet. Claim the seas.</p>
+    </div>
+
+    <button class="corner-btn help-btn" id="help-btn" title="How to play" aria-label="Show instructions">?</button>
+  </header>
+
+  <!-- GAME INFO PANEL -->
+  <section class="info-panel" aria-live="polite">
+    <div class="info-item">
+      <span class="info-label">CAPTAIN</span>
+      <span class="info-value">You</span>
+    </div>
+    <div class="info-item status-item">
+      <span class="info-label">STATUS</span>
+      <span class="info-value" id="turn-status">Your turn</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">RIVAL</span>
+      <span class="info-value">The Kraken's Fleet</span>
+    </div>
+  </section>
+
+  <section class="score-panel">
+    <div class="score-item">
+      <span class="score-num" id="player-hits">0</span>
+      <span class="score-label">CANNON HITS</span>
+    </div>
+    <div class="score-divider">⚓</div>
+    <div class="score-item">
+      <span class="score-num" id="enemy-hits">0</span>
+      <span class="score-label">ENEMY HITS</span>
+    </div>
+  </section>
+
+  <!-- BOARDS -->
+  <main class="boards-wrap">
+
+    <section class="board-section" aria-labelledby="your-fleet-heading">
+      <h2 id="your-fleet-heading" class="board-heading">⚔ YOUR FLEET</h2>
+      <div class="board-frame" id="player-frame">
+        <div class="board-grid" id="player-board" role="grid" aria-label="Your fleet board"></div>
+      </div>
+    </section>
+
+    <section class="board-section" aria-labelledby="enemy-waters-heading">
+      <h2 id="enemy-waters-heading" class="board-heading">🏴‍☠️ ENEMY WATERS</h2>
+      <div class="board-frame" id="enemy-frame">
+        <div class="board-grid" id="enemy-board" role="grid" aria-label="Enemy waters board — click a cell to fire"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FLEET STATUS -->
+  <section class="fleet-status-wrap">
+    <div class="fleet-status" id="your-fleet-status">
+      <h3>Your Fleet</h3>
+      <ul id="your-fleet-list"></ul>
+    </div>
+    <div class="fleet-status" id="enemy-fleet-status">
+      <h3>Enemy Fleet</h3>
+      <ul id="enemy-fleet-list"></ul>
+    </div>
+  </section>
+
+  <!-- CONTROLS -->
+  <section class="controls">
+    <button id="new-game-btn" class="btn btn-primary">⚔ NEW VOYAGE</button>
+    <button id="sound-toggle-btn" class="btn btn-secondary" aria-pressed="true">🔊 SFX ON</button>
+    <button id="music-toggle-btn" class="btn btn-secondary" aria-pressed="true">🎵 MUSIC ON</button>
+  </section>
+
+  <!-- INSTRUCTIONS -->
+  <section class="instructions">
+    <p>Fire on <strong>Enemy Waters</strong> to hunt the rival fleet. Fleet: Carrier(5), Battleship(4), Cruiser(3), Submarine(3), Destroyer(2). A hit earns another shot — sink every ship before the enemy sinks yours.</p>
+  </section>
+
+  <footer class="footer">
+    <p>Vanilla HTML · CSS · JavaScript — university front-end project</p>
+  </footer>
+
+</div>
+
+<!-- INSTRUCTIONS MODAL -->
+<div class="modal-overlay" id="instructions-overlay">
+  <div class="modal-box instructions-box" role="dialog" aria-modal="true" aria-labelledby="instructions-title">
+    <div class="modal-icon">🗺️</div>
+    <h2 id="instructions-title" class="modal-title">Captain's Orders</h2>
+    <ul class="instructions-list">
+      <li><strong>Goal:</strong> sink the entire enemy fleet before yours goes under.</li>
+      <li><strong>Setup:</strong> both fleets are deployed automatically — 5 ships each, placed randomly, never overlapping.</li>
+      <li><strong>Your turn:</strong> click any cell on <em>Enemy Waters</em> to fire a cannon shot.</li>
+      <li><strong>Hit:</strong> a red blast marks a hit and you fire again immediately.</li>
+      <li><strong>Miss:</strong> a splash marks the water and the turn passes to the enemy.</li>
+      <li><strong>Sunk ship:</strong> once every cell of a ship is hit, it's destroyed and crossed off the fleet list.</li>
+      <li><strong>Victory / Defeat:</strong> the battle ends the moment one fleet is fully sunk.</li>
+      <li>Use the <strong>SFX</strong> and <strong>MUSIC</strong> buttons to control sound; <strong>NEW VOYAGE</strong> restarts the battle any time.</li>
+    </ul>
+    <button id="instructions-close-btn" class="btn btn-primary">SET SAIL</button>
+  </div>
+</div>
+
+<!-- GAME OVER MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-icon" id="modal-icon">🏆</div>
+    <h2 id="modal-title" class="modal-title">VICTORY!</h2>
+    <p id="modal-message" class="modal-message">All enemy ships have been sunk.</p>
+    <button id="modal-btn" class="btn btn-primary">PLAY AGAIN</button>
+  </div>
+</div>
+<div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
